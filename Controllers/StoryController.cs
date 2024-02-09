@@ -4,6 +4,7 @@ using LinguacApi.Data.Models;
 using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LinguacApi.Controllers
 {
@@ -17,6 +18,26 @@ namespace LinguacApi.Controllers
             Story? story = await dbContext.Stories.FindAsync(id);
 
             return story is null ? NotFound() : Ok(story.ToDto());
+        }
+
+        [HttpGet]
+        async public Task<ActionResult<IEnumerable<StoryDto>>> GetMultiple(Language? language, CefrLevel? level)
+        {
+            IQueryable<Story> query = dbContext.Stories;
+
+            if (language.HasValue)
+            {
+                query = query.Where(story => story.Language == language.Value);
+            }
+
+            if (level.HasValue)
+            {
+                query = query.Where(story => story.Level == level.Value);
+            }
+
+            var stories = await query.ToListAsync();
+
+            return Ok(stories.Select(story => story.ToDto()));
         }
 
         [HttpPost]
