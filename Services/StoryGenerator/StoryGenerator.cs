@@ -41,9 +41,11 @@ namespace LinguacApi.Services.StoryGenerator
                     }
                 )).ReceiveJson<JsonObject>();
 
-            return response["choices"]?[0]?["message"]?["content"]
-               .Deserialize<StoryResponse>(OpenAiSerializationOptions.Instance)
-                ?? throw new StoryGenerationException("The response from the OpenAI API was not in the expected format.");
+            string storyResponseJson = response["choices"]?[0]?["message"]?["content"]?.GetValue<string>()
+                ?? throw new StoryGenerationException("The response from the OpenAI API did not contain the expected JSON structure.");
+
+            return JsonSerializer.Deserialize<StoryResponse>(storyResponseJson, OpenAiSerializationOptions.Instance)
+                ?? throw new StoryGenerationException("The model did not follow the expected JSON structure.");
         }
     }
 }
