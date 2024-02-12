@@ -1,7 +1,7 @@
 ﻿namespace LinguacApi.Data.Models
 {
-    public record Question(Guid Id, string Text, string CorrectAnswer, ICollection<string> IncorrectAnswers)
+    public record Question(Guid Id, string Text)
     {
-        public IEnumerable<string> AllAnswers => IncorrectAnswers.Append(CorrectAnswer);
+        public required Story Story { get; init; }
     }
 }

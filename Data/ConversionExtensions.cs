@@ -8,7 +8,7 @@ namespace LinguacApi.Data
         public static StoryDto ToDto(this Story story) =>
             new(story.Id, story.Title, story.Content, story.Language, story.Level);
 
-        public static Story ToModel(this StoryDto storyDTO) =>
-            new(storyDTO.Id, storyDTO.Title, storyDTO.Content, storyDTO.Language, storyDTO.Level);
+        public static QuestionDto ToDto(this Question question) =>
+            new(question.Id, question.Text);
     }
 }
