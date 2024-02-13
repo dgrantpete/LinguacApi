@@ -11,7 +11,8 @@ builder.Services
     .AddTransient<IStoryGenerator, StoryGenerator>()
     .AddDbContext<LinguacDbContext>(options =>
     {
-        options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("Database")
+            ?? throw new InvalidOperationException($"'Database' connection string could not be found in the configuration."));
     })
     .AddControllers()
     .AddJsonOptions(options =>
