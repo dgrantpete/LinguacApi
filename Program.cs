@@ -1,6 +1,7 @@
 using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,15 @@ builder.Services
     .Configure<OpenAiConfiguration>(builder.Configuration.GetSection("OpenAiConfiguration"))
     .Configure<PromptConfiguration>(builder.Configuration.GetSection("PromptConfiguration"))
     .AddTransient<IStoryGenerator, StoryGenerator>()
+    .AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", builder =>
+        {
+            builder.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+    })
     .AddDbContext<LinguacDbContext>(options =>
     {
         options.UseNpgsql(builder.Configuration.GetConnectionString("Database")
@@ -42,6 +52,7 @@ app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerUI();
+    app.UseCors("AllowAll");
 }
 
 if (app.Environment.IsProduction())
