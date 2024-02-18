@@ -5,9 +5,11 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddJsonFile("PromptConfiguration.json");
+
 builder.Services
-    .AddSingleton(builder.Configuration.GetSection("OpenAiConfiguration").Get<OpenAiConfiguration>()
-        ?? throw new InvalidOperationException($"'OpenAiConfiguration' could not be found in the configuration or was not formatted properly."))
+    .Configure<OpenAiConfiguration>(builder.Configuration.GetSection("OpenAiConfiguration"))
+    .Configure<PromptConfiguration>(builder.Configuration.GetSection("PromptConfiguration"))
     .AddTransient<IStoryGenerator, StoryGenerator>()
     .AddDbContext<LinguacDbContext>(options =>
     {

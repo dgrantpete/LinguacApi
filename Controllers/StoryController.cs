@@ -43,7 +43,7 @@ namespace LinguacApi.Controllers
         [HttpPost]
         async public Task<ActionResult<StoryDto>> Create(CreateStoryDto createStoryOptions)
         {
-            StoryResponse storyResponse = await storyGenerator.GenerateStoryContent(createStoryOptions.Language, createStoryOptions.Level);
+            StoryResponse storyResponse = await storyGenerator.GenerateStoryContent(createStoryOptions.Language, createStoryOptions.Level, createStoryOptions.Prompt);
 
             Story story = new(Guid.NewGuid(), storyResponse.Title, storyResponse.Content, createStoryOptions.Language, createStoryOptions.Level);
 

@@ -10,6 +10,7 @@
 
     public record CreateStoryDto(
         Language Language,
-        CefrLevel Level
+        CefrLevel Level,
+        string? Prompt = null
     );
 }
