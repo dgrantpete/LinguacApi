@@ -5,5 +5,7 @@
         English,
         Italian,
         Spanish,
+        French,
+        German,
     }
 }
