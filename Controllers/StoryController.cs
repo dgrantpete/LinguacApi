@@ -20,6 +20,22 @@ namespace LinguacApi.Controllers
             return story is null ? NotFound() : Ok(story.ToDto());
         }
 
+        [HttpDelete("{id}")]
+        async public Task<ActionResult> Delete(Guid id)
+        {
+            Story? story = await dbContext.Stories.FindAsync(id);
+
+            if (story is null)
+            {
+                return NotFound();
+            }
+
+            dbContext.Stories.Remove(story);
+            await dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet]
         async public Task<ActionResult<IEnumerable<StoryDto>>> GetMultiple(Language? language, CefrLevel? level)
         {
