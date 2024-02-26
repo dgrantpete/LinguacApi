@@ -1,7 +1,9 @@
 ﻿namespace LinguacApi.Data.Models
 {
-    public record Story(Guid Id, string Title, string Content, Language Language, CefrLevel Level)
+    public record Story(string Title, string Content, Language Language, CefrLevel Level)
     {
-        public ICollection<Question> Questions { get; init; } = new List<Question>();
+        public Guid Id { get; init; } = Guid.NewGuid();
+
+        public ICollection<Question> Questions { get; init; } = [];
     }
 }

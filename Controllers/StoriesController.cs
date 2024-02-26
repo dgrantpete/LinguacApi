@@ -3,6 +3,7 @@ using LinguacApi.Data.Dtos;
 using LinguacApi.Data.Models;
 using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
+using LinguacApi.Services.StoryGenerator.OpenAiModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,7 +11,7 @@ namespace LinguacApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class StoryController(LinguacDbContext dbContext, IStoryGenerator storyGenerator) : ControllerBase
+    public class StoriesController(LinguacDbContext dbContext, IStoryGenerator storyGenerator) : ControllerBase
     {
         [HttpGet("{id}")]
         async public Task<ActionResult<StoryDto>> Get(Guid id)
@@ -61,7 +62,7 @@ namespace LinguacApi.Controllers
         {
             StoryResponse storyResponse = await storyGenerator.GenerateStoryContent(createStoryOptions.Language, createStoryOptions.Level, createStoryOptions.Prompt);
 
-            Story story = new(Guid.NewGuid(), storyResponse.Title, storyResponse.Content, createStoryOptions.Language, createStoryOptions.Level);
+            Story story = new(storyResponse.Title, storyResponse.Content, createStoryOptions.Language, createStoryOptions.Level);
 
             await dbContext.Stories.AddAsync(story);
             await dbContext.SaveChangesAsync();

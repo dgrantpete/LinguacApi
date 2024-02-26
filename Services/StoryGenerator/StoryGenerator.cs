@@ -27,7 +27,7 @@ namespace LinguacApi.Services.StoryGenerator
                 .WithOAuthBearerToken(_openAiConfiguration.ApiKey)
                 .PostJsonAsync(new CompletionRequest(
                     _openAiConfiguration.Model,
-                    2048,
+                    4095,
                     1.1,
                     new List<Message>
                     {
@@ -45,26 +45,29 @@ namespace LinguacApi.Services.StoryGenerator
                 ?? throw new StoryGenerationException("The model did not follow the expected JSON structure.");
         }
 
-        public async Task<IEnumerable<string>> GenerateStoryQuestions(string storyContent, Language language, CefrLevel level)
+        public async Task<IEnumerable<QuestionResponse>> GenerateStoryQuestions(string storyContent, Language language, CefrLevel level)
         {
             JsonObject response = await _openAiConfiguration.EndpointUrl
                 .WithSettings(settings => settings.JsonSerializer = _jsonSerializer)
                 .WithOAuthBearerToken(_openAiConfiguration.ApiKey)
                 .PostJsonAsync(new CompletionRequest(
                     _openAiConfiguration.Model,
-                    2048,
-                    1.1,
+                    4095,
+                    0.9,
                     new List<Message>
                     {
                         new(MessageRole.System, string.Format(_promptConfiguration.SystemQuestionPrompt, level, language)),
                         new(MessageRole.User, storyContent)
-                    }
+                    },
+                    _random.Next(), // Using a random seed to promote diversity in the generated stories
+                    new ResponseFormat("json_object")
                 )).ReceiveJson<JsonObject>();
 
-            string questions = response["choices"]?[0]?["message"]?["content"]?.GetValue<string>()
+            string questionsResponseJson = response["choices"]?[0]?["message"]?["content"]?.GetValue<string>()
                 ?? throw new StoryGenerationException("The response from the OpenAI API did not contain the expected JSON structure.");
 
-            return questions.Split("\n\n").Select(question => question.Trim());
+            return JsonSerializer.Deserialize<QuestionsResponse>(questionsResponseJson, OpenAiSerializationOptions.Instance)?.Questions
+                ?? throw new StoryGenerationException("The model did not follow the expected JSON structure.");
         }
     }
 }

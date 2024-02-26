@@ -8,5 +8,7 @@ namespace LinguacApi.Services.Database
         public DbSet<Story> Stories { get; private set; }
 
         public DbSet<Question> Questions { get; private set; }
+
+        public DbSet<Answer> Answers { get; private set; }
     }
 }

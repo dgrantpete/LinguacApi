@@ -1,7 +1,6 @@
 using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("PromptConfiguration.json");
 
 builder.Services
+    .AddRouting(options => options.LowercaseUrls = true)
     .Configure<OpenAiConfiguration>(builder.Configuration.GetSection("OpenAiConfiguration"))
     .Configure<PromptConfiguration>(builder.Configuration.GetSection("PromptConfiguration"))
     .AddTransient<IStoryGenerator, StoryGenerator>()

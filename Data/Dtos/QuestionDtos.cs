@@ -2,6 +2,7 @@
 {
     public record QuestionDto(
         Guid Id,
-        string Text
+        string Text,
+        IEnumerable<AnswerDto> Answers
     );
 }
