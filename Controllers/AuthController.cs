@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace LinguacApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     public class AuthController(IJwtHandler jwtHandler,
         IOptions<JwtConfiguration> jwtConfiguration,
         PasswordHasher<User> passwordHasher,
@@ -23,7 +23,7 @@ namespace LinguacApi.Controllers
         private readonly JwtConfiguration _jwtConfiguration = jwtConfiguration.Value;
 
         [AllowAnonymous]
-        [HttpPost("[action]")]
+        [HttpPost]
         public async Task<ActionResult<TokenStatusDto>> Login(LoginDto loginInfo)
         {
             var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == loginInfo.Email);
@@ -56,7 +56,7 @@ namespace LinguacApi.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("[action]")]
+        [HttpPost]
         public ActionResult Logout()
         {
             AddAccessTokenCookie(DateTime.UtcNow.AddDays(-1));
@@ -65,7 +65,7 @@ namespace LinguacApi.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("[action]")]
+        [HttpPost]
         public async Task<ActionResult> Register(AccountRegistrationDto accountRegistrationInfo)
         {
             if (await dbContext.Users.AnyAsync(user => user.Email == accountRegistrationInfo.Email))
@@ -87,7 +87,7 @@ namespace LinguacApi.Controllers
             return Ok();
         }
 
-        [HttpPost("[action]")]
+        [HttpPost]
         public async Task<ActionResult> ChangePassword([AuthenticatedUser] User user, ChangePasswordDto changePasswordInfo)
         {
             if (!await VerifyPassword(user, changePasswordInfo.OldPassword))
