@@ -59,6 +59,7 @@ namespace LinguacApi.Controllers
             return Ok(stories.Select(story => story.ToDto()));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         async public Task<ActionResult<StoryDto>> Create(CreateStoryDto createStoryOptions)
         {

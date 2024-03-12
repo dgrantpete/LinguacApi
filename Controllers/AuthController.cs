@@ -28,19 +28,7 @@ namespace LinguacApi.Controllers
         {
             var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == loginInfo.Email);
 
-            if (user?.PasswordHash is null)
-            {
-                return BadRequest("Invalid email or password");
-            }
-
-            PasswordVerificationResult passwordVerificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginInfo.Password);
-
-            if (passwordVerificationResult is PasswordVerificationResult.SuccessRehashNeeded)
-            {
-                user.PasswordHash = passwordHasher.HashPassword(user, loginInfo.Password);
-                await dbContext.SaveChangesAsync();
-            }
-            else if (passwordVerificationResult is not PasswordVerificationResult.Success)
+            if (user is null || !await VerifyPassword(user, loginInfo.Password))
             {
                 return BadRequest("Invalid email or password");
             }
@@ -53,18 +41,18 @@ namespace LinguacApi.Controllers
 
             AddRefreshTokenCookie(refreshToken.Expiration, refreshToken.Value);
 
-            return Ok(new TokenStatusDto() { AccessTokenExpiration = accessToken.Expiration, RefreshTokenExpiration = refreshToken.Expiration });
+            return Ok(new TokenStatusDto(accessToken.Expiration, refreshToken.Expiration));
         }
 
         [Authorize(AuthenticationSchemes = "RefreshCookieJwt")]
-        [HttpGet("[action]")]
+        [HttpPost("[action]")]
         public ActionResult<TokenStatusDto> Refresh([AuthenticatedUser] User user)
         {
             TokenResult accessToken = jwtHandler.GenerateAccessToken(user.Id, user.Roles);
 
             AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
 
-            return Ok(new AccessTokenStatusDto() { AccessTokenExpiration = accessToken.Expiration });
+            return Ok(new AccessTokenStatusDto(accessToken.Expiration));
         }
 
         [AllowAnonymous]
@@ -99,6 +87,21 @@ namespace LinguacApi.Controllers
             return Ok();
         }
 
+        [HttpPost("[action]")]
+        public async Task<ActionResult> ChangePassword([AuthenticatedUser] User user, ChangePasswordDto changePasswordInfo)
+        {
+            if (!await VerifyPassword(user, changePasswordInfo.OldPassword))
+            {
+                return BadRequest("Old password is incorrect");
+            }
+
+            user.PasswordHash = passwordHasher.HashPassword(user, changePasswordInfo.NewPassword);
+
+            await dbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
         private void AddAccessTokenCookie(DateTime expiration, string token = "")
         {
             Response.Cookies.Append(_jwtConfiguration.AccessCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.AccessCookieDomain));
@@ -125,5 +128,27 @@ namespace LinguacApi.Controllers
             Expires = expiration,
             Path = path ?? "/"
         };
+
+        private async Task<bool> VerifyPassword(User user, string password)
+        {
+            if (user.PasswordHash is null)
+            {
+                return false;
+            }
+
+            PasswordVerificationResult passwordVerificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+
+            if (passwordVerificationResult is PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.PasswordHash = passwordHasher.HashPassword(user, password);
+                await dbContext.SaveChangesAsync();
+            }
+            else if (passwordVerificationResult is not PasswordVerificationResult.Success)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }
