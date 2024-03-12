@@ -1,6 +1,7 @@
 ﻿namespace LinguacApi.Data.Dtos
 {
-    public record QuestionDto(
+    public record QuestionDto
+    (
         Guid Id,
         string Text,
         IEnumerable<AnswerDto> Answers

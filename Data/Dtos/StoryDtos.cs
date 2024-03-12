@@ -1,6 +1,7 @@
 ﻿namespace LinguacApi.Data.Dtos
 {
-    public record StoryDto(
+    public record StoryDto
+    (
         Guid Id,
         string Title,
         string Content,
@@ -8,9 +9,16 @@
         CefrLevel Level
     );
 
-    public record CreateStoryDto(
+    public record CreateStoryDto(Language Language, CefrLevel Level)
+    {
+        public string? Prompt { get; init; }
+    }
+
+    public record StorySummaryDto
+    (
+        Guid Id,
+        string Title,
         Language Language,
-        CefrLevel Level,
-        string? Prompt = null
+        CefrLevel Level
     );
 }

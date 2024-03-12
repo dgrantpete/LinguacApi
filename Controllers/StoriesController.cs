@@ -56,7 +56,7 @@ namespace LinguacApi.Controllers
 
             var stories = await query.ToListAsync();
 
-            return Ok(stories.Select(story => story.ToDto()));
+            return Ok(stories.Select(story => story.ToSummaryDto()));
         }
 
         [Authorize(Roles = "admin")]
