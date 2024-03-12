@@ -9,6 +9,7 @@ using LinguacApi.Swagger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -37,7 +38,7 @@ builder.Services.AddAuthorizationBuilder()
             .Build());
 
 builder.Services
-    .AddRouting(options => options.LowercaseUrls = true)
+    .AddRouting()
     .Configure<OpenAiConfiguration>(builder.Configuration.GetSection("OpenAiConfiguration"))
     .Configure<PromptConfiguration>(builder.Configuration.GetSection("PromptConfiguration"))
     .Configure<JwtConfiguration>(builder.Configuration.GetSection("JwtConfiguration"))
@@ -58,7 +59,10 @@ builder.Services
         options.UseNpgsql(builder.Configuration.GetConnectionString("Database")
             ?? throw new InvalidOperationException($"'Database' connection string could not be found in the configuration."));
     })
-    .AddControllers()
+    .AddControllers(options =>
+    {
+        options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
