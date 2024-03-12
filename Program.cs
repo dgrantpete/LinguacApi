@@ -33,6 +33,7 @@ builder.Services
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()
+            .RequireRole("user")
             .Build());
 
 builder.Services
