@@ -26,7 +26,7 @@ namespace LinguacApi.Controllers
                 return NotFound();
             }
 
-            if (story.Questions.Count <= 0)
+            if (story.Questions.Count != 0)
             {
                 IEnumerable<QuestionResponse> questionTexts = await storyGenerator.GenerateStoryQuestions(story.Content, story.Language, story.Level);
                 await dbContext.Questions.AddRangeAsync(questionTexts

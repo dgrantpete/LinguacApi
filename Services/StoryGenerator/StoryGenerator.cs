@@ -1,5 +1,6 @@
 ﻿using Flurl.Http;
 using Flurl.Http.Configuration;
+using LinguacApi.Configurations;
 using LinguacApi.Data;
 using LinguacApi.Services.StoryGenerator.OpenAiModels;
 using Microsoft.Extensions.Options;
