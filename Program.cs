@@ -1,12 +1,14 @@
 using LinguacApi.Configurations;
+using LinguacApi.Data.Database;
 using LinguacApi.Data.Models;
 using LinguacApi.Services;
 using LinguacApi.Services.CookieJwtAuthenticationHandler;
-using LinguacApi.Services.Database;
 using LinguacApi.Services.JwtHandler;
 using LinguacApi.Services.StoryGenerator;
+using LinguacApi.Swagger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -70,7 +72,10 @@ builder.Services.AddHsts(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.OperationFilter<ExcludeParameterWithAttributeFilter<ModelBinderAttribute>>();
+});
 
 var app = builder.Build();
 

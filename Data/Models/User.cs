@@ -7,5 +7,9 @@
         public string? Email { get; set; }
 
         public string? PasswordHash { get; set; }
+
+        public bool IsAdmin { get; set; } = false;
+
+        public IEnumerable<string> Roles => IsAdmin ? ["admin", "user"] : ["user"];
     }
 }

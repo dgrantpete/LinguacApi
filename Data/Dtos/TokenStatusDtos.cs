@@ -6,4 +6,9 @@
 
         public DateTime? RefreshTokenExpiration { get; set; }
     }
+
+    public record AccessTokenStatusDto
+    {
+        public DateTime? AccessTokenExpiration { get; set; }
+    }
 }

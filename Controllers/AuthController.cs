@@ -1,29 +1,55 @@
 ﻿using LinguacApi.Configurations;
+using LinguacApi.Data.Binders;
+using LinguacApi.Data.Database;
 using LinguacApi.Data.Dtos;
+using LinguacApi.Data.Models;
 using LinguacApi.Services;
 using LinguacApi.Services.JwtHandler;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
 
 namespace LinguacApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AuthController(IJwtHandler jwtHandler, IOptions<JwtConfiguration> jwtConfiguration) : ControllerBase
+    public class AuthController(IJwtHandler jwtHandler,
+        IOptions<JwtConfiguration> jwtConfiguration,
+        PasswordHasher<User> passwordHasher,
+        LinguacDbContext dbContext) : ControllerBase
     {
         private readonly JwtConfiguration _jwtConfiguration = jwtConfiguration.Value;
 
         [AllowAnonymous]
         [HttpPost("[action]")]
-        public ActionResult<TokenStatusDto> Login()
+        public async Task<ActionResult<TokenStatusDto>> Login(LoginDto loginInfo)
         {
-            TokenResult accessToken = jwtHandler.GenerateAccessToken("userId", ["user"]);
+            var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == loginInfo.Email);
+
+            if (user?.PasswordHash is null)
+            {
+                return BadRequest("Invalid email or password");
+            }
+
+            PasswordVerificationResult passwordVerificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginInfo.Password);
+
+            if (passwordVerificationResult is PasswordVerificationResult.SuccessRehashNeeded)
+            {
+                user.PasswordHash = passwordHasher.HashPassword(user, loginInfo.Password);
+                await dbContext.SaveChangesAsync();
+            }
+            else if (passwordVerificationResult is not PasswordVerificationResult.Success)
+            {
+                return BadRequest("Invalid email or password");
+            }
+
+            TokenResult accessToken = jwtHandler.GenerateAccessToken(user.Id, user.Roles);
 
             AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
 
-            TokenResult refreshToken = jwtHandler.GenerateRefreshToken("userId");
+            TokenResult refreshToken = jwtHandler.GenerateRefreshToken(user.Id);
 
             AddRefreshTokenCookie(refreshToken.Expiration, refreshToken.Value);
 
@@ -32,20 +58,13 @@ namespace LinguacApi.Controllers
 
         [Authorize(AuthenticationSchemes = "RefreshCookieJwt")]
         [HttpGet("[action]")]
-        public ActionResult<TokenStatusDto> Refresh()
+        public ActionResult<TokenStatusDto> Refresh([AuthenticatedUser] User user)
         {
-            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            TokenResult accessToken = jwtHandler.GenerateAccessToken(user.Id, user.Roles);
 
-            if (userId is null)
-            {
-                return Unauthorized();
-            }
+            AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
 
-            TokenResult accessToken = jwtHandler.GenerateAccessToken(userId, ["role"]);
-
-            AddRefreshTokenCookie(accessToken.Expiration, accessToken.Value);
-
-            return Ok(new TokenStatusDto() { AccessTokenExpiration = accessToken.Expiration });
+            return Ok(new AccessTokenStatusDto() { AccessTokenExpiration = accessToken.Expiration });
         }
 
         [AllowAnonymous]
@@ -57,9 +76,26 @@ namespace LinguacApi.Controllers
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("[action]")]
-        public ActionResult Register()
+        public async Task<ActionResult> Register(AccountRegistrationDto accountRegistrationInfo)
         {
+            if (await dbContext.Users.AnyAsync(user => user.Email == accountRegistrationInfo.Email))
+            {
+                return BadRequest("Email already in use");
+            }
+
+            User user = new()
+            {
+                Email = accountRegistrationInfo.Email
+            };
+
+            user.PasswordHash = passwordHasher.HashPassword(user, accountRegistrationInfo.Password);
+
+            await dbContext.AddAsync(user);
+
+            await dbContext.SaveChangesAsync();
+
             return Ok();
         }
 

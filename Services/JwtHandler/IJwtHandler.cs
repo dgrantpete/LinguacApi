@@ -5,9 +5,9 @@ namespace LinguacApi.Services
 {
     public interface IJwtHandler
     {
-        TokenResult GenerateAccessToken(string userId, IEnumerable<string> roles);
+        TokenResult GenerateAccessToken(Guid userId, IEnumerable<string> roles);
 
-        TokenResult GenerateRefreshToken(string userId);
+        TokenResult GenerateRefreshToken(Guid userId);
 
         ClaimsPrincipal? ValidateAccessToken(string accessToken);
 

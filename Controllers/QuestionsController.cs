@@ -1,7 +1,7 @@
 using LinguacApi.Data;
+using LinguacApi.Data.Database;
 using LinguacApi.Data.Dtos;
 using LinguacApi.Data.Models;
-using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
 using LinguacApi.Services.StoryGenerator.OpenAiModels;
 using Microsoft.AspNetCore.Mvc;

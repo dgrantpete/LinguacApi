@@ -44,9 +44,9 @@ namespace LinguacApi.Services.JwtHandler
 
         private readonly TokenValidationParameters _refreshTokenValidationParameters;
 
-        public TokenResult GenerateAccessToken(string userId, IEnumerable<string> roles)
+        public TokenResult GenerateAccessToken(Guid userId, IEnumerable<string> roles)
         {
-            IEnumerable<Claim> claims = [new Claim(JwtRegisteredClaimNames.Sub, userId)];
+            IEnumerable<Claim> claims = [new Claim(JwtRegisteredClaimNames.Sub, userId.ToString())];
 
             claims = claims.Concat(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
@@ -64,11 +64,11 @@ namespace LinguacApi.Services.JwtHandler
             return new TokenResult(_jwtSecurityTokenHandler.WriteToken(jwt), jwt.ValidTo);
         }
 
-        public TokenResult GenerateRefreshToken(string userId)
+        public TokenResult GenerateRefreshToken(Guid userId)
         {
             SecurityTokenDescriptor tokenDescriptor = new()
             {
-                Subject = new ClaimsIdentity([new Claim(JwtRegisteredClaimNames.Sub, userId)]),
+                Subject = new ClaimsIdentity([new Claim(JwtRegisteredClaimNames.Sub, userId.ToString())]),
                 Expires = DateTime.UtcNow.AddSeconds(_jwtConfiguration.RefreshExpirationSeconds),
                 SigningCredentials = new(_refreshTokenValidationParameters.IssuerSigningKey, SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _jwtConfiguration.Issuer,
