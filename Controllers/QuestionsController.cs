@@ -1,18 +1,20 @@
 using LinguacApi.Data;
+using LinguacApi.Data.Database;
 using LinguacApi.Data.Dtos;
 using LinguacApi.Data.Models;
-using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
 using LinguacApi.Services.StoryGenerator.OpenAiModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace LinguacApi.Controllers
 {
     [ApiController]
-    [Route("Story/{storyId}/[controller]")]
+    [Route("stories/{storyId}/[controller]")]
     public class QuestionsController(LinguacDbContext dbContext, IStoryGenerator storyGenerator) : ControllerBase
     {
+        [Authorize(Roles = "admin")]
         [HttpPost]
         async public Task<ActionResult<IEnumerable<QuestionDto>>> GetOrCreateMultiple(Guid storyId)
         {
@@ -26,7 +28,7 @@ namespace LinguacApi.Controllers
                 return NotFound();
             }
 
-            if (story.Questions.Count <= 0)
+            if (story.Questions.Count != 0)
             {
                 IEnumerable<QuestionResponse> questionTexts = await storyGenerator.GenerateStoryQuestions(story.Content, story.Language, story.Level);
                 await dbContext.Questions.AddRangeAsync(questionTexts

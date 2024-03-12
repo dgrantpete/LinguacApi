@@ -1,7 +1,7 @@
 ﻿using LinguacApi.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace LinguacApi.Services.Database
+namespace LinguacApi.Data.Database
 {
     public class LinguacDbContext(DbContextOptions<LinguacDbContext> options) : DbContext(options)
     {
@@ -10,5 +10,7 @@ namespace LinguacApi.Services.Database
         public DbSet<Question> Questions { get; private set; }
 
         public DbSet<Answer> Answers { get; private set; }
+
+        public DbSet<User> Users { get; private set; }
     }
 }

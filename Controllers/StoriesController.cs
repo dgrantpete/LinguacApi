@@ -1,9 +1,10 @@
 using LinguacApi.Data;
+using LinguacApi.Data.Database;
 using LinguacApi.Data.Dtos;
 using LinguacApi.Data.Models;
-using LinguacApi.Services.Database;
 using LinguacApi.Services.StoryGenerator;
 using LinguacApi.Services.StoryGenerator.OpenAiModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ namespace LinguacApi.Controllers
             return story is null ? NotFound() : Ok(story.ToDto());
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         async public Task<ActionResult> Delete(Guid id)
         {
@@ -57,6 +59,7 @@ namespace LinguacApi.Controllers
             return Ok(stories.Select(story => story.ToDto()));
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         async public Task<ActionResult<StoryDto>> Create(CreateStoryDto createStoryOptions)
         {
