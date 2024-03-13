@@ -45,7 +45,7 @@ namespace LinguacApi.Controllers
         }
 
         [Authorize(AuthenticationSchemes = "RefreshCookieJwt")]
-        [HttpPost("[action]")]
+        [HttpPost]
         public ActionResult<TokenStatusDto> Refresh([AuthenticatedUser] User user)
         {
             TokenResult accessToken = jwtHandler.GenerateAccessToken(user.Id, user.Roles);
