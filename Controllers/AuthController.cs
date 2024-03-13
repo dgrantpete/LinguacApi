@@ -124,7 +124,7 @@ namespace LinguacApi.Controllers
             Secure = true,
             IsEssential = true,
             Domain = domain,
-            SameSite = SameSiteMode.None,
+            SameSite = SameSiteMode.Strict,
             Expires = expiration,
             Path = path ?? "/"
         };
