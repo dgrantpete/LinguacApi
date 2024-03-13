@@ -47,9 +47,10 @@ builder.Services
     .AddScoped<PasswordHasher<User>>()
     .AddCors(options =>
     {
-        options.AddPolicy("AllowAll", builder =>
+        options.AddPolicy("Development", builder =>
         {
-            builder.AllowAnyOrigin()
+            builder.SetIsOriginAllowed(_ => true)
+                .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -90,7 +91,7 @@ app.UseSwagger();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerUI();
-    app.UseCors("AllowAll");
+    app.UseCors("Development");
 }
 
 if (app.Environment.IsProduction())
