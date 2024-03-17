@@ -53,7 +53,7 @@ namespace LinguacApi.Services.JwtHandler
             SecurityTokenDescriptor tokenDescriptor = new()
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddSeconds(_jwtConfiguration.AccessExpirationSeconds),
+                Expires = DateTime.UtcNow.Add(_jwtConfiguration.AccessExpirationTime),
                 SigningCredentials = new(_accessTokenValidationParameters.IssuerSigningKey, SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _jwtConfiguration.Issuer,
                 Audience = _jwtConfiguration.Audience
@@ -69,7 +69,7 @@ namespace LinguacApi.Services.JwtHandler
             SecurityTokenDescriptor tokenDescriptor = new()
             {
                 Subject = new ClaimsIdentity([new Claim(JwtRegisteredClaimNames.Sub, userId.ToString())]),
-                Expires = DateTime.UtcNow.AddSeconds(_jwtConfiguration.RefreshExpirationSeconds),
+                Expires = DateTime.UtcNow.Add(_jwtConfiguration.RefreshExpirationTime),
                 SigningCredentials = new(_refreshTokenValidationParameters.IssuerSigningKey, SecurityAlgorithms.HmacSha256Signature),
                 Issuer = _jwtConfiguration.Issuer,
                 Audience = _jwtConfiguration.Audience

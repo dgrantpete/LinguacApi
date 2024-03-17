@@ -1,5 +1,8 @@
-﻿namespace LinguacApi.Data.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace LinguacApi.Data.Models
 {
+    [Index(nameof(Email), IsUnique = true)]
     public record User
     {
         public Guid Id { get; init; } = Guid.NewGuid();

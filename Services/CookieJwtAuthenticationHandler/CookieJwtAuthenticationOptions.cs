@@ -1,4 +1,5 @@
 ﻿using LinguacApi.Configurations;
+using LinguacApi.Services.JwtHandler;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 

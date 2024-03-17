@@ -1,14 +1,14 @@
 using LinguacApi.Configurations;
+using LinguacApi.Data.Binders;
 using LinguacApi.Data.Database;
 using LinguacApi.Data.Models;
-using LinguacApi.Services;
 using LinguacApi.Services.CookieJwtAuthenticationHandler;
+using LinguacApi.Services.EmailConfirmer;
 using LinguacApi.Services.JwtHandler;
 using LinguacApi.Services.StoryGenerator;
 using LinguacApi.Swagger;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -39,12 +39,14 @@ builder.Services.AddAuthorizationBuilder()
 
 builder.Services
     .AddRouting()
-    .Configure<OpenAiConfiguration>(builder.Configuration.GetSection("OpenAiConfiguration"))
-    .Configure<PromptConfiguration>(builder.Configuration.GetSection("PromptConfiguration"))
-    .Configure<JwtConfiguration>(builder.Configuration.GetSection("JwtConfiguration"))
+    .Configure<OpenAiConfiguration>(builder.Configuration.GetSection(nameof(OpenAiConfiguration)))
+    .Configure<PromptConfiguration>(builder.Configuration.GetSection(nameof(PromptConfiguration)))
+    .Configure<JwtConfiguration>(builder.Configuration.GetSection(nameof(JwtConfiguration)))
+    .Configure<EmailConfirmationConfiguration>(builder.Configuration.GetSection(nameof(EmailConfirmationConfiguration)))
     .AddTransient<IStoryGenerator, StoryGenerator>()
     .AddScoped<IJwtHandler, JwtHandler>()
-    .AddScoped<PasswordHasher<User>>()
+    .AddScoped<IPasswordHasher<User>, PasswordHasher<User>>()
+    .AddScoped<EmailConfirmer>()
     .AddCors(options =>
     {
         options.AddPolicy("Development", builder =>
@@ -59,6 +61,8 @@ builder.Services
     {
         options.UseNpgsql(builder.Configuration.GetConnectionString("Database")
             ?? throw new InvalidOperationException($"'Database' connection string could not be found in the configuration."));
+
+        options.UseSnakeCaseNamingConvention();
     })
     .AddControllers(options =>
     {
@@ -80,7 +84,7 @@ builder.Services.AddHsts(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.OperationFilter<ExcludeParameterWithAttributeFilter<ModelBinderAttribute>>();
+    options.OperationFilter<ExcludeParameterWithAttributeFilter<AuthenticatedUserAttribute>>();
 });
 
 var app = builder.Build();

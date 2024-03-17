@@ -12,5 +12,7 @@ namespace LinguacApi.Data.Database
         public DbSet<Answer> Answers { get; private set; }
 
         public DbSet<User> Users { get; private set; }
+
+        public DbSet<PendingEmailConfirmation> PendingEmailConfirmations { get; private set; }
     }
 }

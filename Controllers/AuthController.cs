@@ -3,7 +3,7 @@ using LinguacApi.Data.Binders;
 using LinguacApi.Data.Database;
 using LinguacApi.Data.Dtos;
 using LinguacApi.Data.Models;
-using LinguacApi.Services;
+using LinguacApi.Services.EmailConfirmer;
 using LinguacApi.Services.JwtHandler;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,8 +17,9 @@ namespace LinguacApi.Controllers
     [Route("[controller]/[action]")]
     public class AuthController(IJwtHandler jwtHandler,
         IOptions<JwtConfiguration> jwtConfiguration,
-        PasswordHasher<User> passwordHasher,
-        LinguacDbContext dbContext) : ControllerBase
+        LinguacDbContext dbContext,
+        IPasswordHasher<User> passwordHasher,
+        EmailConfirmer emailConfirmer) : ControllerBase
     {
         private readonly JwtConfiguration _jwtConfiguration = jwtConfiguration.Value;
 
@@ -66,21 +67,37 @@ namespace LinguacApi.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<ActionResult> Register(AccountRegistrationDto accountRegistrationInfo)
+        public async Task<ActionResult> Register(RegistrationDto accountRegistrationInfo)
         {
-            if (await dbContext.Users.AnyAsync(user => user.Email == accountRegistrationInfo.Email))
+            string normalizedEmail = accountRegistrationInfo.Email
+                .Trim()
+                .ToLower();
+
+            if (await dbContext.Users.AnyAsync(user => user.Email == normalizedEmail))
             {
                 return BadRequest("Email already in use");
             }
 
             User user = new()
             {
-                Email = accountRegistrationInfo.Email
+                Email = normalizedEmail
             };
 
-            user.PasswordHash = passwordHasher.HashPassword(user, accountRegistrationInfo.Password);
+            Guid emailConfirmationId = Guid.NewGuid();
 
-            await dbContext.AddAsync(user);
+            DateTime emailConfirmationExpiration = await emailConfirmer.SendConfirmationEmail(normalizedEmail, emailConfirmationId);
+
+            PendingEmailConfirmation pendingEmailConfirmation = new
+            (
+                normalizedEmail,
+                passwordHasher.HashPassword(user, accountRegistrationInfo.Password),
+                emailConfirmationExpiration
+            )
+            {
+                Id = emailConfirmationId
+            };
+
+            await dbContext.AddAsync(pendingEmailConfirmation);
 
             await dbContext.SaveChangesAsync();
 
@@ -96,6 +113,46 @@ namespace LinguacApi.Controllers
             }
 
             user.PasswordHash = passwordHasher.HashPassword(user, changePasswordInfo.NewPassword);
+
+            await dbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<ActionResult> ConfirmEmail(EmailConfirmationDto emailConfirmationInfo)
+        {
+            Guid confirmationId = emailConfirmationInfo.ConfirmationId;
+
+            PendingEmailConfirmation? pendingEmailConfirmation = await dbContext.FindAsync<PendingEmailConfirmation>(confirmationId);
+
+            if (pendingEmailConfirmation is null)
+            {
+                return BadRequest("Invalid confirmation id");
+            }
+
+            dbContext.Remove(pendingEmailConfirmation);
+
+            if (pendingEmailConfirmation.ExpiresAt < DateTime.UtcNow)
+            {
+                await dbContext.SaveChangesAsync();
+                return BadRequest("Confirmation has expired");
+            }
+
+            if (await dbContext.Users.AnyAsync(user => user.Email == pendingEmailConfirmation.Email))
+            {
+                await dbContext.SaveChangesAsync();
+                return BadRequest("Email already in use");
+            }
+
+            User user = new()
+            {
+                Email = pendingEmailConfirmation.Email,
+                PasswordHash = pendingEmailConfirmation.PasswordHash
+            };
+
+            await dbContext.AddAsync(user);
 
             await dbContext.SaveChangesAsync();
 

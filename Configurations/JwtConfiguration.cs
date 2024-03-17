@@ -2,24 +2,24 @@
 {
     public class JwtConfiguration
     {
-        required public string AccessSecret { get; set; }
+        public required string AccessSecret { get; set; }
 
-        required public string RefreshSecret { get; set; }
+        public required string RefreshSecret { get; set; }
 
-        required public string Issuer { get; set; }
+        public required string Issuer { get; set; }
 
-        required public string Audience { get; set; }
+        public required string Audience { get; set; }
 
-        required public int AccessExpirationSeconds { get; set; }
+        public required TimeSpan AccessExpirationTime { get; set; }
 
-        required public int RefreshExpirationSeconds { get; set; }
+        public required TimeSpan RefreshExpirationTime { get; set; }
 
-        required public string AccessCookieName { get; set; }
+        public required string AccessCookieName { get; set; }
 
-        required public string RefreshCookieName { get; set; }
+        public required string RefreshCookieName { get; set; }
 
-        required public string AccessCookieDomain { get; set; }
+        public required string AccessCookieDomain { get; set; }
 
-        required public string RefreshCookieDomain { get; set; }
+        public required string RefreshCookieDomain { get; set; }
     }
 }

@@ -1,7 +1,6 @@
-﻿using LinguacApi.Services.JwtHandler;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 
-namespace LinguacApi.Services
+namespace LinguacApi.Services.JwtHandler
 {
     public interface IJwtHandler
     {

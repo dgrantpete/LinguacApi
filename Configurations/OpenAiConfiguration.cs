@@ -2,10 +2,10 @@
 {
     public class OpenAiConfiguration
     {
-        required public string ApiKey { get; set; }
+        public required string ApiKey { get; set; }
 
-        required public string Model { get; set; }
+        public required string Model { get; set; }
 
-        required public string EndpointUrl { get; set; }
+        public required string EndpointUrl { get; set; }
     }
 }

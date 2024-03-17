@@ -1,7 +1,6 @@
 ﻿using LinguacApi.Data.Database;
 using LinguacApi.Data.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace LinguacApi.Data.Binders
@@ -10,6 +9,8 @@ namespace LinguacApi.Data.Binders
     {
         public async Task BindModelAsync(ModelBindingContext bindingContext)
         {
+            ArgumentNullException.ThrowIfNull(bindingContext);
+
             if (bindingContext.ModelType != typeof(User))
             {
                 return;
@@ -18,7 +19,7 @@ namespace LinguacApi.Data.Binders
             var userId = Guid.Parse(bindingContext.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
                 ?? throw new InvalidOperationException("Name identifier not found in claims."));
 
-            var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Id == userId);
+            var user = await dbContext.FindAsync<User>(userId);
             bindingContext.Result = ModelBindingResult.Success(user);
         }
     }

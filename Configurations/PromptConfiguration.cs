@@ -2,8 +2,8 @@
 {
     public class PromptConfiguration
     {
-        required public string SystemStoryPrompt { get; set; }
+        public required string SystemStoryPrompt { get; set; }
 
-        required public string SystemQuestionPrompt { get; set; }
+        public required string SystemQuestionPrompt { get; set; }
     }
 }
