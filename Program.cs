@@ -43,10 +43,10 @@ builder.Services
     .Configure<PromptConfiguration>(builder.Configuration.GetSection(nameof(PromptConfiguration)))
     .Configure<JwtConfiguration>(builder.Configuration.GetSection(nameof(JwtConfiguration)))
     .Configure<EmailConfirmationConfiguration>(builder.Configuration.GetSection(nameof(EmailConfirmationConfiguration)))
-    .AddTransient<IStoryGenerator, StoryGenerator>()
-    .AddScoped<IJwtHandler, JwtHandler>()
-    .AddScoped<IPasswordHasher<User>, PasswordHasher<User>>()
-    .AddScoped<EmailConfirmer>()
+    .AddSingleton<IStoryGenerator, StoryGenerator>()
+    .AddSingleton<IJwtHandler, JwtHandler>()
+    .AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>()
+    .AddSingleton<EmailConfirmer>()
     .AddCors(options =>
     {
         options.AddPolicy("Development", builder =>
