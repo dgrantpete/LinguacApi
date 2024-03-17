@@ -166,13 +166,9 @@ namespace LinguacApi.Controllers
 
         private void AddRefreshTokenCookie(DateTime expiration, string token = "")
         {
-            // Getting endpoint for current controller so all auth controller requests recieve refresh token cookie
-            // Couldn't find a cleaner way to do this
-            string authEndpoint = string.Join('/', Url.Action(null, ControllerContext.ActionDescriptor.ControllerName)!
-                .Split('/')
-                .SkipLast(1));
+            string refreshEndpoint = Url.Action(nameof(Refresh), ControllerContext.ActionDescriptor.ControllerName)!;
 
-            Response.Cookies.Append(_jwtConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, authEndpoint));
+            Response.Cookies.Append(_jwtConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, refreshEndpoint));
         }
 
         private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default) => new()
