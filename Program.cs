@@ -103,13 +103,6 @@ if (app.Environment.IsProduction())
     app.UseHsts();
 }
 
-// Apply migrations
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<LinguacDbContext>();
-    dbContext.Database.Migrate();
-}
-
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
