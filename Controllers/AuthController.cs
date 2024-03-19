@@ -165,7 +165,7 @@ namespace LinguacApi.Controllers
 
         private void AddRefreshTokenExpirationCookie(DateTime expiration)
         {
-            Response.Cookies.Append("refreshTokenExpiration", expiration.ToString("O"), CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, httpOnly: false));
+            Response.Cookies.Append("refreshTokenExpiration", expiration.ToString("O"), CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, httpOnly: false, secure: false));
         }
 
         private void AddAccessTokenCookie(DateTime expiration, string token = "")
@@ -180,10 +180,10 @@ namespace LinguacApi.Controllers
             Response.Cookies.Append(_jwtConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, refreshEndpoint));
         }
 
-        private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default, bool httpOnly = true) => new()
+        private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default, bool httpOnly = true, bool secure = true) => new()
         {
             HttpOnly = httpOnly,
-            Secure = true,
+            Secure = secure,
             IsEssential = true,
             Domain = domain,
             SameSite = SameSiteMode.Strict,
