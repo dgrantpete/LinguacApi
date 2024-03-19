@@ -41,6 +41,7 @@ namespace LinguacApi.Controllers
             TokenResult refreshToken = jwtHandler.GenerateRefreshToken(user.Id);
 
             AddRefreshTokenCookie(refreshToken.Expiration, refreshToken.Value);
+            AddRefreshTokenExpirationCookie(refreshToken.Expiration);
 
             return Ok(new TokenStatusDto(accessToken.Expiration, refreshToken.Expiration));
         }
@@ -60,8 +61,11 @@ namespace LinguacApi.Controllers
         [HttpPost]
         public ActionResult Logout()
         {
-            AddAccessTokenCookie(DateTime.UtcNow.AddDays(-1));
-            AddRefreshTokenCookie(DateTime.UtcNow.AddDays(-1));
+            var expiredTime = DateTime.UtcNow.AddDays(-1);
+
+            AddAccessTokenCookie(expiredTime);
+            AddRefreshTokenCookie(expiredTime);
+            AddRefreshTokenExpirationCookie(expiredTime);
             return Ok();
         }
 
@@ -159,6 +163,11 @@ namespace LinguacApi.Controllers
             return Ok();
         }
 
+        private void AddRefreshTokenExpirationCookie(DateTime expiration)
+        {
+            Response.Cookies.Append("refreshTokenExpiration", expiration.ToString("O"), CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, httpOnly: false));
+        }
+
         private void AddAccessTokenCookie(DateTime expiration, string token = "")
         {
             Response.Cookies.Append(_jwtConfiguration.AccessCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.AccessCookieDomain));
@@ -171,9 +180,9 @@ namespace LinguacApi.Controllers
             Response.Cookies.Append(_jwtConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, refreshEndpoint));
         }
 
-        private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default) => new()
+        private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default, bool httpOnly = true) => new()
         {
-            HttpOnly = true,
+            HttpOnly = httpOnly,
             Secure = true,
             IsEssential = true,
             Domain = domain,

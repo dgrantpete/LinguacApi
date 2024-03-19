@@ -30,7 +30,6 @@ builder.Services
         options.GetCookieNameDelegate = jwtConfiguration => jwtConfiguration.RefreshCookieName;
     });
 
-
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder()
             .RequireAuthenticatedUser()
