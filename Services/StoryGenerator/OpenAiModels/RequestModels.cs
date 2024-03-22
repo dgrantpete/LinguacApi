@@ -1,22 +1,22 @@
 ﻿namespace LinguacApi.Services.StoryGenerator.OpenAiModels
 {
-    public record CompletionRequest(
-        string Model,
-        int MaxTokens,
-        double Temperature,
-        IEnumerable<Message> Messages,
-        int? Seed = null,
-        ResponseFormat? ResponseFormat = null
-    );
+	public record CompletionRequest(
+		string Model,
+		int MaxTokens,
+		double Temperature,
+		IEnumerable<Message> Messages,
+		ResponseFormat? ResponseFormat = null,
+		bool Stream = false
+	);
 
-    public record ResponseFormat(string Type);
+	public record ResponseFormat(string Type);
 
-    public record Message(MessageRole Role, string Content);
+	public record Message(MessageRole Role, string Content);
 
-    public enum MessageRole
-    {
-        System,
-        User,
-        Assistant
-    }
+	public enum MessageRole
+	{
+		System,
+		User,
+		Assistant
+	}
 }

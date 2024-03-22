@@ -1,0 +1,6 @@
+﻿@using LinguacApi.Services.Email.Templates.ConfirmEmail
+@using RazorLight
+@inherits TemplatePage<ConfirmEmailModel>
+<p>Hello! To finish creating your Linguac account, please click the link below to confirm your email address:</p>
+<a clicktracking="off" href="@Model.ConfirmationLink">Verify Email</a>
+<p>If you did not create an account, no further action is required.</p>

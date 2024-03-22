@@ -1,4 +1,4 @@
 ﻿namespace LinguacApi.Data.Dtos
 {
-    public record AnswerDto(Guid Id, string Text);
+	public record AnswerDto(Guid Id, string Text);
 }

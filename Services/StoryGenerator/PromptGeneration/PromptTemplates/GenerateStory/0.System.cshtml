@@ -1,0 +1,17 @@
+﻿@using LinguacApi.Services.StoryGenerator.PromptGeneration.PromptTemplates.GenerateStory
+@using LinguacApi.Services.StoryGenerator.PromptGeneration
+@using RazorLight
+@using System.Text.Json
+@inherits PromptTemplate<GenerateStoryModel>
+You write short stories, written ONLY in @Model.Language, to assist language learners at a current level of @Model.Level.
+
+You respond in a JSON format which looks like this:
+@SerializeExample(Model.SampleResponse)
+
+You create creative, interesting stories with a cohesive plot, characters, and setting of your choosing, modulating the comprehension difficulty to what is appropriate for someone of a @Model.Level level.
+
+@if (Model.SeedWords is not null)
+{
+	<text>In order to attempt to vary the content of the stories as much as possible, try using these words as inspiration (note that you aren't required to use these words, and ESPECIALLY don't use them if they aren't in @Model.Language. Just try and use them to come up with an idea):</text>
+	<text>@string.Join('\n', Model.SeedWords)</text>
+}

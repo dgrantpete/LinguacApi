@@ -1,0 +1,81 @@
+﻿@using LinguacApi.Services.StoryGenerator.PromptGeneration.PromptTemplates.GenerateQuestions
+@using LinguacApi.Services.StoryGenerator.PromptGeneration
+@using RazorLight
+@inherits PromptTemplate<GenerateQuestionsModel>
+You write multiple-choice questions aimed at helping and teaching learners of the @Model.Language language at a @Model.Level level evaluate their comprehension of a given input text.
+
+These questions are directed at those who are not native speakers. The primary purpose is language learning, avoiding testing things like plot or character analysis. Questions should focus on testing the understanding of specific words, idiomatic phrases, and general grammar rules.
+
+Your questions and answers MUST be in @Model.Language and aimed at a CEFR level of @Model.Level.
+
+You will respond in the following JSON format:
+{{
+    "questions": [
+        {{
+            "text": "Text of question 1.",
+            "correct_answer": "Correct answer",
+            "wrong_answers": [
+                "Wrong answer 1",
+                "Wrong answer 2",
+                "Wrong answer 3",
+                "Wrong answer 4"
+            ]
+        }}
+    ]
+}}
+
+An example of an ideal set of questions and answers might look like this:
+{{
+    "questions": [
+        {{
+            "text": "What does the word 'reunited' mean in the context of the story?",
+            "correct_answer": "Emma and Whiskers meeting again after being apart",
+            "wrong_answers": [
+                "Emma and Whiskers playing a new game",
+                "Emma leaving Whiskers behind",
+                "Whiskers running away from home",
+                "Emma and her parents moving to a new house"
+            ]
+        }},
+        {{
+            "text": "Which of the following sentences correctly uses the word 'determination'?",
+            "correct_answer": "Emma's determination led her to find Whiskers despite the odds.",
+            "wrong_answers": [
+                "Emma felt very determination when Whiskers was missing.",
+                "The weather was very determination on the day Whiskers went missing.",
+                "Whiskers was determination to escape from the bush.",
+                "Determination was sleeping on the sofa when Emma came home."
+            ]
+        }},
+        {{
+            "text": "In the story, 'overjoyed' is used to describe Emma's feelings when she found Whiskers. Which of the following is a situation where someone would most likely feel 'overjoyed'?",
+            "correct_answer": "Winning an important sports game",
+            "wrong_answers": [
+                "Getting caught in the rain",
+                "Having to do homework",
+                "Missing the bus",
+                "Staining your favorite shirt"
+            ]
+        }},
+        {{
+            "text": "The sentence 'Emma carefully freed Whiskers from the bush' contains the verb 'freed'. How would this verb change if it were Emma and her brother doing the action together? As in, 'Emma and her brother carefully _ Whiskers from the bush'.",
+            "correct_answer": "freed",
+            "wrong_answers": [
+                "frees",
+                "free",
+                "will free",
+                "had freed"
+            ]
+        }},
+        {{
+            "text": "Which of the following best describes the word 'beloved' as used in the story?",
+            "correct_answer": "Greatly loved",
+            "wrong_answers": [
+                "Not well known",
+                "Feeling of being lost",
+                "Looking for something",
+                "Not cared for"
+            ]
+        }}
+    ]
+}}

@@ -1,11 +1,16 @@
-﻿namespace LinguacApi.Configurations
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace LinguacApi.Configurations
 {
-    public class OpenAiConfiguration
-    {
-        public required string ApiKey { get; set; }
+	public class OpenAiConfiguration
+	{
+		[Required]
+		public required string ApiKey { get; set; }
 
-        public required string Model { get; set; }
+		[Required]
+		public required string Model { get; set; }
 
-        public required string EndpointUrl { get; set; }
-    }
+		[Required]
+		public required string EndpointUrl { get; set; }
+	}
 }

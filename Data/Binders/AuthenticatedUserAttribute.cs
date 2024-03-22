@@ -2,7 +2,7 @@
 
 namespace LinguacApi.Data.Binders
 {
-    public class AuthenticatedUserAttribute() : ModelBinderAttribute(typeof(AuthenticatedUserBinder))
-    {
-    }
+	public class AuthenticatedUserAttribute() : ModelBinderAttribute(typeof(AuthenticatedUserBinder))
+	{
+	}
 }

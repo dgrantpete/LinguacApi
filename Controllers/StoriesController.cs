@@ -10,67 +10,67 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LinguacApi.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class StoriesController(LinguacDbContext dbContext, IStoryGenerator storyGenerator) : ControllerBase
-    {
-        [HttpGet("{id}")]
-        async public Task<ActionResult<StoryDto>> Get(Guid id)
-        {
-            Story? story = await dbContext.Stories.FindAsync(id);
+	[ApiController]
+	[Route("[controller]")]
+	public class StoriesController(LinguacDbContext dbContext, IStoryGenerator storyGenerator) : ControllerBase
+	{
+		[HttpGet("{id}")]
+		async public Task<ActionResult<StoryDto>> Get(Guid id)
+		{
+			Story? story = await dbContext.Stories.FindAsync(id);
 
-            return story is null ? NotFound() : Ok(story.ToDto());
-        }
+			return story is null ? NotFound() : Ok(story.ToDto());
+		}
 
-        [Authorize(Roles = "admin")]
-        [HttpDelete("{id}")]
-        async public Task<ActionResult> Delete(Guid id)
-        {
-            Story? story = await dbContext.Stories.FindAsync(id);
+		[Authorize(Roles = "admin")]
+		[HttpDelete("{id}")]
+		async public Task<ActionResult> Delete(Guid id)
+		{
+			Story? story = await dbContext.Stories.FindAsync(id);
 
-            if (story is null)
-            {
-                return NotFound();
-            }
+			if (story is null)
+			{
+				return NotFound();
+			}
 
-            dbContext.Stories.Remove(story);
-            await dbContext.SaveChangesAsync();
+			dbContext.Stories.Remove(story);
+			await dbContext.SaveChangesAsync();
 
-            return NoContent();
-        }
+			return NoContent();
+		}
 
-        [HttpGet]
-        async public Task<ActionResult<IEnumerable<StoryDto>>> GetMultiple(Language? language, CefrLevel? level)
-        {
-            IQueryable<Story> query = dbContext.Stories;
+		[HttpGet]
+		async public Task<ActionResult<IEnumerable<StoryDto>>> GetMultiple(Language? language, CefrLevel? level)
+		{
+			IQueryable<Story> query = dbContext.Stories;
 
-            if (language.HasValue)
-            {
-                query = query.Where(story => story.Language == language.Value);
-            }
+			if (language.HasValue)
+			{
+				query = query.Where(story => story.Language == language.Value);
+			}
 
-            if (level.HasValue)
-            {
-                query = query.Where(story => story.Level == level.Value);
-            }
+			if (level.HasValue)
+			{
+				query = query.Where(story => story.Level == level.Value);
+			}
 
-            var stories = await query.ToListAsync();
+			var stories = await query.ToListAsync();
 
-            return Ok(stories.Select(story => story.ToSummaryDto()));
-        }
+			return Ok(stories.Select(story => story.ToSummaryDto()));
+		}
 
-        [Authorize(Roles = "admin")]
-        [HttpPost]
-        async public Task<ActionResult<StoryDto>> Create(CreateStoryDto createStoryOptions)
-        {
-            StoryResponse storyResponse = await storyGenerator.GenerateStoryContent(createStoryOptions.Language, createStoryOptions.Level, createStoryOptions.Prompt);
+		[Authorize(Roles = "admin")]
+		[HttpPost]
+		async public Task<ActionResult<StoryDto>> Create(CreateStoryDto createStoryOptions)
+		{
+			StoryResponse storyResponse = await storyGenerator.GenerateStoryContent(createStoryOptions.Language, createStoryOptions.Level, createStoryOptions.Prompt, createStoryOptions.SeedWords);
 
-            Story story = new(storyResponse.Title, storyResponse.Content, createStoryOptions.Language, createStoryOptions.Level);
+			Story story = new(storyResponse.Title, storyResponse.Content, createStoryOptions.Language, createStoryOptions.Level);
 
-            await dbContext.Stories.AddAsync(story);
-            await dbContext.SaveChangesAsync();
+			await dbContext.Stories.AddAsync(story);
+			await dbContext.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(Get), new { story.Id }, story.ToDto());
-        }
-    }
+			return CreatedAtAction(nameof(Get), new { story.Id }, story.ToDto());
+		}
+	}
 }
