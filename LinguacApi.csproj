@@ -8,6 +8,8 @@
         <InvariantGlobalization>true</InvariantGlobalization>
         <UserSecretsId>837f76d6-6abd-400b-a972-b244b372f48c</UserSecretsId>
         <PreserveCompilationContext>true</PreserveCompilationContext>
+		    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+		    <RazorExcludeRefAssembliesFromPublish>false</RazorExcludeRefAssembliesFromPublish>
     </PropertyGroup>
 
     <ItemGroup>
@@ -27,16 +29,14 @@
     </ItemGroup>
 	
 	<ItemGroup>
-		<Content Include="Templates\**\*cshtml">
+		<Content Include="Services\StoryGenerator\PromptGeneration\PromptTemplates\**\*cshtml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
 		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="*.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
 		</Content>
 	</ItemGroup>
 	
