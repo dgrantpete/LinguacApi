@@ -1,7 +1,7 @@
 ﻿using LinguacApi.Data;
 using LinguacApi.Services.StoryGenerator.OpenAiModels;
 
-namespace LinguacApi.Services.StoryGenerator.PromptGeneration.PromptTemplates.GenerateStory
+namespace LinguacApi.Templates.Prompts.GenerateStory
 {
 	public record GenerateStoryModel(Language Language, CefrLevel Level, StoryResponse SampleResponse)
 	{

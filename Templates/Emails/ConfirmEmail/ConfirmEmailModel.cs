@@ -1,6 +1,7 @@
-﻿using SendGrid.Helpers.Mail;
+﻿using LinguacApi.Services.Email;
+using SendGrid.Helpers.Mail;
 
-namespace LinguacApi.Services.Email.Templates.ConfirmEmail
+namespace LinguacApi.Templates.Emails.ConfirmEmail
 {
 	public record ConfirmEmailModel(string ConfirmationLink) : IEmailModel
 	{
