@@ -1,6 +1,6 @@
 ﻿using LinguacApi.Data;
 
-namespace LinguacApi.Services.StoryGenerator.PromptGeneration.PromptTemplates.GenerateQuestions
+namespace LinguacApi.Templates.Prompts.GenerateQuestions
 {
 	public record GenerateQuestionsModel(string StoryContent, Language Language, CefrLevel Level);
 }

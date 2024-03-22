@@ -1,7 +1,7 @@
 ﻿using Flurl;
 using LinguacApi.Configurations;
 using LinguacApi.Services.Email.EmailGenerator;
-using LinguacApi.Services.Email.Templates.ConfirmEmail;
+using LinguacApi.Templates.Emails.ConfirmEmail;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;

@@ -26,19 +26,9 @@
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     </ItemGroup>
 	
-    <ItemGroup>
-        <Content Include="Services\Email\Templates\**\*cshtml">
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	        <TargetPath>Templates\Emails\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
-        </Content>
-    </ItemGroup>
-	
 	<ItemGroup>
-		<Content Include="Services\StoryGenerator\PromptGeneration\PromptTemplates\**\*cshtml">
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		<Content Include="Templates\**\*cshtml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>Templates\Prompts\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
 		</Content>
 	</ItemGroup>
 
