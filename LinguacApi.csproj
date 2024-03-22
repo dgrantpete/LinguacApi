@@ -32,6 +32,7 @@
 	
     <ItemGroup>
         <Content Include="Services\Email\Templates\**\*cshtml">
+			<CopyToPublishDirectory>always</CopyToPublishDirectory>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	        <TargetPath>Templates\Emails\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
         </Content>
@@ -44,6 +45,7 @@
 	
 	<ItemGroup>
 		<Content Include="Services\StoryGenerator\PromptGeneration\PromptTemplates\**\*cshtml">
+			<CopyToPublishDirectory>always</CopyToPublishDirectory>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>Templates\Prompts\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
 		</Content>
