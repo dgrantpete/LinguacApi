@@ -8,6 +8,8 @@
         <InvariantGlobalization>true</InvariantGlobalization>
         <UserSecretsId>837f76d6-6abd-400b-a972-b244b372f48c</UserSecretsId>
         <PreserveCompilationContext>true</PreserveCompilationContext>
+		<RazorCompileOnPublish>false</RazorCompileOnPublish>
+		<RazorExcludeRefAssembliesFromPublish>false</RazorExcludeRefAssembliesFromPublish>
     </PropertyGroup>
 
     <ItemGroup>
@@ -36,7 +38,6 @@
 	
 	<ItemGroup>
 		<Content Include="Services\StoryGenerator\PromptGeneration\PromptTemplates\**\*cshtml">
-			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>Templates\Prompts\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
 		</Content>
