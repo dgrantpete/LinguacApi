@@ -20,9 +20,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration
-	.AddJsonFile("promptConfiguration.json");
-
 builder.Services
 	.AddAuthentication("CookieJwt")
 	.AddScheme<CookieJwtAuthenticationOptions, CookieJwtAuthenticationHandler>("CookieJwt", options =>
