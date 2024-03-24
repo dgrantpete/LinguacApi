@@ -157,7 +157,7 @@ namespace LinguacApi.Controllers
 
 		[HttpPost("{passwordResetId}")]
 		[AllowAnonymous]
-		public async Task<ActionResult<TokenStatusDto>> PostResetPassword(ResetPasswordDto resetPasswordInfo, Guid passwordResetId)
+		public async Task<ActionResult> PostResetPassword(ResetPasswordDto resetPasswordInfo, Guid passwordResetId)
 		{
 			PendingPasswordReset? pendingPasswordReset = await dbContext.PasswordResetRequests
 				.Include(request => request.User)
@@ -182,16 +182,7 @@ namespace LinguacApi.Controllers
 
 			await dbContext.SaveChangesAsync();
 
-			TokenResult accessToken = tokenHandler.GenerateAccessToken(user.Id, user.Roles);
-
-			AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
-
-			TokenResult refreshToken = tokenHandler.GenerateRefreshToken(user.Id);
-
-			AddRefreshTokenCookie(refreshToken.Expiration, refreshToken.Value);
-			AddRefreshTokenExpirationCookie(refreshToken.Expiration);
-
-			return Ok(new TokenStatusDto(accessToken.Expiration, refreshToken.Expiration));
+			return Ok();
 		}
 
 		[AllowAnonymous]
