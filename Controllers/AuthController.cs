@@ -138,9 +138,11 @@ namespace LinguacApi.Controllers
 
 		[HttpGet("{passwordResetId}")]
 		[AllowAnonymous]
-		public async Task<ActionResult> GetResetPassword(Guid passwordResetId)
+		public async Task<ActionResult<CheckPasswordResetResponseDto>> GetResetPassword(Guid passwordResetId)
 		{
-			PendingPasswordReset? pendingPasswordReset = await dbContext.FindAsync<PendingPasswordReset>(passwordResetId);
+			PendingPasswordReset? pendingPasswordReset = await dbContext.PasswordResetRequests
+				.Include(request => request.User)
+				.FirstOrDefaultAsync(request => request.Id == passwordResetId);
 
 			if (pendingPasswordReset is null)
 			{
@@ -152,7 +154,7 @@ namespace LinguacApi.Controllers
 				return BadRequest("Confirmation has expired");
 			}
 
-			return Ok();
+			return Ok(new CheckPasswordResetResponseDto(pendingPasswordReset.User.Email));
 		}
 
 		[HttpPost("{passwordResetId}")]

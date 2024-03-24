@@ -15,4 +15,6 @@ namespace LinguacApi.Data.Dtos
 	public record ForgotPasswordDto(string Email);
 
 	public record ResetPasswordDto([Length(8, 255)] string NewPassword);
+
+	public record CheckPasswordResetResponseDto(string? Email);
 }
