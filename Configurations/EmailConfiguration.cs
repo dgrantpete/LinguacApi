@@ -11,7 +11,13 @@ namespace LinguacApi.Configurations
 		public required string ConfirmationUrl { get; set; }
 
 		[Required]
-		public required TimeSpan ExpirationTime { get; set; }
+		public required TimeSpan ConfirmationExpirationTime { get; set; }
+
+		[Required]
+		public required string ResetPasswordUrl { get; set; }
+
+		[Required]
+		public required TimeSpan ResetPasswordExpirationTime { get; set; }
 
 		[Required]
 		public required string EmailTemplatesPath { get; set; }

@@ -4,6 +4,8 @@ namespace LinguacApi.Extensions
 {
 	public partial class KebabCaseParameterTransformer : IOutboundParameterTransformer
 	{
+		private static readonly string[] prefixes = [ "Get", "Post", "Put", "Delete", "Patch" ];
+
 		public string TransformOutbound(object? value)
 		{
 			if (value is null)
@@ -11,7 +13,15 @@ namespace LinguacApi.Extensions
 				return string.Empty;
 			}
 
-			return WordBreakMatcher().Replace(value.ToString()!, "$1-$2").ToLower();
+			string valueString = value.ToString()!;
+
+			valueString = prefixes.FirstOrDefault(prefix => valueString.StartsWith(prefix)) switch
+			{
+				string prefix => valueString[prefix.Length..],
+				_ => valueString
+			};
+
+			return WordBreakMatcher().Replace(valueString, "$1-$2").ToLower();
 		}
 
 		[GeneratedRegex("([a-z])([A-Z])")]

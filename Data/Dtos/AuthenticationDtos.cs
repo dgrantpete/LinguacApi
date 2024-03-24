@@ -10,11 +10,9 @@ namespace LinguacApi.Data.Dtos
 
 	public record LoginDto(string Email, string Password);
 
-	public record ChangePasswordDto
-	(
-		string OldPassword,
-		[Length(8, 255)] string NewPassword
-	);
-
 	public record EmailConfirmationDto(Guid ConfirmationId);
+
+	public record ForgotPasswordDto(string Email);
+
+	public record ResetPasswordDto([Length(8, 255)] string NewPassword);
 }

@@ -27,7 +27,7 @@ namespace LinguacApi.Controllers
 
 		[AllowAnonymous]
 		[HttpPost]
-		public async Task<ActionResult<TokenStatusDto>> Login(LoginDto loginInfo)
+		public async Task<ActionResult<TokenStatusDto>> PostLogin(LoginDto loginInfo)
 		{
 			string normalizedEmail = NormalizeEmail(loginInfo.Email);
 
@@ -63,7 +63,7 @@ namespace LinguacApi.Controllers
 
 		[AllowAnonymous]
 		[HttpPost]
-		public ActionResult Logout()
+		public ActionResult PostLogout()
 		{
 			var expiredTime = DateTime.UtcNow.AddDays(-1);
 
@@ -75,7 +75,7 @@ namespace LinguacApi.Controllers
 
 		[AllowAnonymous]
 		[HttpPost]
-		public async Task<ActionResult> Register(RegistrationDto accountRegistrationInfo)
+		public async Task<ActionResult> PostRegister(RegistrationDto accountRegistrationInfo)
 		{
 			string normalizedEmail = NormalizeEmail(accountRegistrationInfo.Email);
 
@@ -111,23 +111,92 @@ namespace LinguacApi.Controllers
 		}
 
 		[HttpPost]
-		public async Task<ActionResult> ChangePassword([AuthenticatedUser] User user, ChangePasswordDto changePasswordInfo)
+		[AllowAnonymous]
+		public async Task<ActionResult> PostForgotPassword(ForgotPasswordDto forgotPasswordInfo)
 		{
-			if (!await VerifyPassword(user, changePasswordInfo.OldPassword))
-			{
-				return BadRequest("Old password is incorrect");
-			}
+			string normalizedEmail = NormalizeEmail(forgotPasswordInfo.Email);
 
-			user.PasswordHash = passwordHasher.HashPassword(user, changePasswordInfo.NewPassword);
+			User? user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == normalizedEmail);
+
+			if (user is null)
+			{
+				return BadRequest("Email not found");
+			}
+			
+			Guid passwordResetId = Guid.NewGuid();
+
+			DateTime passwordResetExpiration = await emailConfirmer.SendPasswordResetEmail(normalizedEmail, passwordResetId);
+
+			PendingPasswordReset pendingPasswordReset = new(passwordResetExpiration) { User = user, Id = passwordResetId };
+
+			await dbContext.AddAsync(pendingPasswordReset);
 
 			await dbContext.SaveChangesAsync();
 
 			return Ok();
 		}
 
+		[HttpGet("{passwordResetId}")]
+		[AllowAnonymous]
+		public async Task<ActionResult> GetResetPassword(Guid passwordResetId)
+		{
+			PendingPasswordReset? pendingPasswordReset = await dbContext.FindAsync<PendingPasswordReset>(passwordResetId);
+
+			if (pendingPasswordReset is null)
+			{
+				return BadRequest("Invalid confirmation id");
+			}
+
+			if (pendingPasswordReset.ExpiresAt < DateTime.UtcNow)
+			{
+				return BadRequest("Confirmation has expired");
+			}
+
+			return Ok();
+		}
+
+		[HttpPost("{passwordResetId}")]
+		[AllowAnonymous]
+		public async Task<ActionResult<TokenStatusDto>> PostResetPassword(ResetPasswordDto resetPasswordInfo, Guid passwordResetId)
+		{
+			PendingPasswordReset? pendingPasswordReset = await dbContext.PasswordResetRequests
+				.Include(request => request.User)
+				.FirstOrDefaultAsync(request => request.Id == passwordResetId);
+
+			if (pendingPasswordReset is null)
+			{
+				return BadRequest("Invalid confirmation id");
+			}
+
+			dbContext.Remove(pendingPasswordReset);
+
+			if (pendingPasswordReset.ExpiresAt < DateTime.UtcNow)
+			{
+				await dbContext.SaveChangesAsync();
+				return BadRequest("Confirmation has expired");
+			}
+
+			User user = pendingPasswordReset.User;
+
+			user.PasswordHash = passwordHasher.HashPassword(user, resetPasswordInfo.NewPassword);
+
+			await dbContext.SaveChangesAsync();
+
+			TokenResult accessToken = tokenHandler.GenerateAccessToken(user.Id, user.Roles);
+
+			AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
+
+			TokenResult refreshToken = tokenHandler.GenerateRefreshToken(user.Id);
+
+			AddRefreshTokenCookie(refreshToken.Expiration, refreshToken.Value);
+			AddRefreshTokenExpirationCookie(refreshToken.Expiration);
+
+			return Ok(new TokenStatusDto(accessToken.Expiration, refreshToken.Expiration));
+		}
+
 		[AllowAnonymous]
 		[HttpPost]
-		public async Task<ActionResult> ConfirmEmail(EmailConfirmationDto emailConfirmationInfo)
+		public async Task<ActionResult> PostConfirmEmail(EmailConfirmationDto emailConfirmationInfo)
 		{
 			Guid confirmationId = emailConfirmationInfo.ConfirmationId;
 
@@ -177,9 +246,11 @@ namespace LinguacApi.Controllers
 
 		private void AddRefreshTokenCookie(DateTime expiration, string token = "")
 		{
-			string refreshEndpoint = Url.Action(nameof(Refresh), ControllerContext.ActionDescriptor.ControllerName)!;
+			// Getting endpoint for current controller so all auth controller requests recieve refresh token cookie
+			// Couldn't find a cleaner way to do this
+			string authEndpoint = nameof(AuthController).Replace("Controller", string.Empty).ToLower();
 
-			Response.Cookies.Append(tokenConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, tokenConfiguration.RefreshCookieDomain, refreshEndpoint));
+			Response.Cookies.Append(tokenConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, tokenConfiguration.RefreshCookieDomain, authEndpoint));
 		}
 
 		private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default, bool httpOnly = true, bool secure = true) => new()

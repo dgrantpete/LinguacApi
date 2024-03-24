@@ -1,0 +1,6 @@
+﻿@using LinguacApi.Services.Email.Templates.PasswordReset
+@using RazorLight
+@inherits TemplatePage<PasswordResetModel>
+<p>We have recieved a request to reset the password of your Linguac account. If this was you, please click the link below to reset your password:</p>
+<a clicktracking="off" href="@Model.ResetPasswordLink">Reset Password</a>
+<p>If you did not request this password request, no further action is required.</p>
