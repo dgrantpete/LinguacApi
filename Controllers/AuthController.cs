@@ -3,7 +3,8 @@ using LinguacApi.Data.Binders;
 using LinguacApi.Data.Database;
 using LinguacApi.Data.Dtos;
 using LinguacApi.Data.Models;
-using LinguacApi.Services.Authentication.JwtHandler;
+using LinguacApi.Services.Authentication;
+using LinguacApi.Services.Authentication.TokenHandler;
 using LinguacApi.Services.Email.Confirmation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,30 +16,33 @@ namespace LinguacApi.Controllers
 {
 	[ApiController]
 	[Route("[controller]/[action]")]
-	public class AuthController(IJwtHandler jwtHandler,
-		IOptions<JwtConfiguration> jwtConfiguration,
+	public class AuthController(
+		IOptions<AuthTokenConfiguration> tokenConfiguration,
+		ITokenHandler tokenHandler,
 		LinguacDbContext dbContext,
 		IPasswordHasher<User> passwordHasher,
 		EmailConfirmer emailConfirmer) : ControllerBase
 	{
-		private readonly JwtConfiguration _jwtConfiguration = jwtConfiguration.Value;
+		private readonly AuthTokenConfiguration tokenConfiguration = tokenConfiguration.Value;
 
 		[AllowAnonymous]
 		[HttpPost]
 		public async Task<ActionResult<TokenStatusDto>> Login(LoginDto loginInfo)
 		{
-			var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == loginInfo.Email);
+			string normalizedEmail = NormalizeEmail(loginInfo.Email);
+
+			var user = await dbContext.Users.FirstOrDefaultAsync(user => user.Email == normalizedEmail);
 
 			if (user is null || !await VerifyPassword(user, loginInfo.Password))
 			{
 				return BadRequest("Invalid email or password");
 			}
 
-			TokenResult accessToken = jwtHandler.GenerateAccessToken(user.Id, user.Roles);
+			TokenResult accessToken = tokenHandler.GenerateAccessToken(user.Id, user.Roles);
 
 			AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
 
-			TokenResult refreshToken = jwtHandler.GenerateRefreshToken(user.Id);
+			TokenResult refreshToken = tokenHandler.GenerateRefreshToken(user.Id);
 
 			AddRefreshTokenCookie(refreshToken.Expiration, refreshToken.Value);
 			AddRefreshTokenExpirationCookie(refreshToken.Expiration);
@@ -46,11 +50,11 @@ namespace LinguacApi.Controllers
 			return Ok(new TokenStatusDto(accessToken.Expiration, refreshToken.Expiration));
 		}
 
-		[Authorize(AuthenticationSchemes = "RefreshCookieJwt")]
+		[Authorize(AuthenticationSchemes = AuthenticationSchemes.RefreshToken)]
 		[HttpPost]
 		public ActionResult<TokenStatusDto> Refresh([AuthenticatedUser] User user)
 		{
-			TokenResult accessToken = jwtHandler.GenerateAccessToken(user.Id, user.Roles);
+			TokenResult accessToken = tokenHandler.GenerateAccessToken(user.Id, user.Roles);
 
 			AddAccessTokenCookie(accessToken.Expiration, accessToken.Value);
 
@@ -73,9 +77,7 @@ namespace LinguacApi.Controllers
 		[HttpPost]
 		public async Task<ActionResult> Register(RegistrationDto accountRegistrationInfo)
 		{
-			string normalizedEmail = accountRegistrationInfo.Email
-				.Trim()
-				.ToLower();
+			string normalizedEmail = NormalizeEmail(accountRegistrationInfo.Email);
 
 			if (await dbContext.Users.AnyAsync(user => user.Email == normalizedEmail))
 			{
@@ -165,19 +167,19 @@ namespace LinguacApi.Controllers
 
 		private void AddRefreshTokenExpirationCookie(DateTime expiration)
 		{
-			Response.Cookies.Append("refreshTokenExpiration", expiration.ToString("O"), CreateTokenCookieOptions(expiration, _jwtConfiguration.AccessCookieDomain));
+			Response.Cookies.Append("refreshTokenExpiration", expiration.ToString("O"), CreateTokenCookieOptions(expiration, tokenConfiguration.AccessCookieDomain));
 		}
 
 		private void AddAccessTokenCookie(DateTime expiration, string token = "")
 		{
-			Response.Cookies.Append(_jwtConfiguration.AccessCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.AccessCookieDomain));
+			Response.Cookies.Append(tokenConfiguration.AccessCookieName, token, CreateTokenCookieOptions(expiration, tokenConfiguration.AccessCookieDomain));
 		}
 
 		private void AddRefreshTokenCookie(DateTime expiration, string token = "")
 		{
 			string refreshEndpoint = Url.Action(nameof(Refresh), ControllerContext.ActionDescriptor.ControllerName)!;
 
-			Response.Cookies.Append(_jwtConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, _jwtConfiguration.RefreshCookieDomain, refreshEndpoint));
+			Response.Cookies.Append(tokenConfiguration.RefreshCookieName, token, CreateTokenCookieOptions(expiration, tokenConfiguration.RefreshCookieDomain, refreshEndpoint));
 		}
 
 		private static CookieOptions CreateTokenCookieOptions(DateTime expiration, string domain, string? path = default, bool httpOnly = true, bool secure = true) => new()
@@ -190,6 +192,8 @@ namespace LinguacApi.Controllers
 			Expires = expiration,
 			Path = path ?? "/"
 		};
+
+		private static string NormalizeEmail(string email) => email.Trim().ToLower();
 
 		private async Task<bool> VerifyPassword(User user, string password)
 		{

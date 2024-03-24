@@ -8,34 +8,24 @@ using SendGrid.Helpers.Mail;
 
 namespace LinguacApi.Services.Email.Confirmation
 {
-	public class EmailConfirmer
+	public class EmailConfirmer(IOptions<EmailConfiguration> emailConfiguration, IEmailGenerator emailGenerator)
 	{
-		private readonly SendGridClient _emailClient;
+		private readonly EmailConfiguration emailConfiguration = emailConfiguration.Value;
 
-		private readonly string _confirmationUrl;
-
-		private readonly TimeSpan _expirationTime;
-
-		private readonly IEmailGenerator _emailGenerator;
-
-		public EmailConfirmer(IOptions<EmailConfiguration> emailConfiguration, IEmailGenerator emailGenerator)
-		{
-			_emailGenerator = emailGenerator;
-			var emailConfigurationValue = emailConfiguration.Value;
-			_emailClient = new SendGridClient(emailConfigurationValue.ApiKey);
-			_confirmationUrl = emailConfigurationValue.ConfirmationUrl;
-			_expirationTime = emailConfigurationValue.ExpirationTime;
-		}
+		private readonly SendGridClient emailClient = new(emailConfiguration.Value.ApiKey);
 
 		public async Task<DateTime> SendConfirmationEmail(string toAddress, Guid confirmationCode)
 		{
-			var confirmationLink = _confirmationUrl.AppendPathSegment(confirmationCode);
+			var confirmationLink = emailConfiguration.ConfirmationUrl.AppendPathSegment(confirmationCode);
 
-			var message = await _emailGenerator.GenerateEmail(new ConfirmEmailModel(confirmationLink), new EmailAddress(toAddress));
+			var confirmModel = new ConfirmEmailModel(confirmationLink);
+			var recipient = new EmailAddress(toAddress);
 
-			await _emailClient.SendEmailAsync(message);
+			var message = await emailGenerator.GenerateEmail(confirmModel, recipient);
 
-			return DateTime.UtcNow.Add(_expirationTime);
+			await emailClient.SendEmailAsync(message);
+
+			return DateTime.UtcNow.Add(emailConfiguration.ExpirationTime);
 		}
 	}
 }

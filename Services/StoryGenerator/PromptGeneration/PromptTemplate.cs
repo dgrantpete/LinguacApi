@@ -6,7 +6,7 @@ namespace LinguacApi.Services.StoryGenerator.PromptGeneration
 {
 	public abstract class PromptTemplate<TModel> : TemplatePage<TModel>
 	{
-		private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+		private readonly JsonSerializerOptions jsonSerializerOptions = new()
 		{
 			WriteIndented = true,
 			PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
@@ -14,10 +14,10 @@ namespace LinguacApi.Services.StoryGenerator.PromptGeneration
 
 		public PromptTemplate()
 		{
-			_jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
+			jsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
 		}
 
-		public string SerializeExample<T>(T example) => JsonSerializer.Serialize(example, _jsonSerializerOptions);
+		public string SerializeExample<T>(T example) => JsonSerializer.Serialize(example, jsonSerializerOptions);
 
 		public override void Write(string value)
 		{

@@ -1,64 +1,35 @@
+using LinguacApi.Data;
 using LinguacApi.Data.Binders;
-using LinguacApi.Data.Database;
 using LinguacApi.Data.Models;
 using LinguacApi.Extensions;
-using LinguacApi.Services.Authentication.CookieJwtAuthenticationHandler;
-using LinguacApi.Services.Authentication.JwtHandler;
-using LinguacApi.Services.Email.Confirmation;
-using LinguacApi.Services.Email.EmailGenerator;
 using LinguacApi.Services.StoryGenerator;
 using LinguacApi.Services.StoryGenerator.PromptGeneration;
 using LinguacApi.Swagger;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
-using RazorLight;
-using RazorLight.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-	.AddAuthentication("CookieJwt")
-	.AddScheme<CookieJwtAuthenticationOptions, CookieJwtAuthenticationHandler>("CookieJwt", options =>
-	{
-		options.ValidateAccessTokenDelegate = (jwtHandler, jwt) => jwtHandler.ValidateAccessToken(jwt);
-		options.GetCookieNameDelegate = jwtConfiguration => jwtConfiguration.AccessCookieName;
-	})
-	.AddScheme<CookieJwtAuthenticationOptions, CookieJwtAuthenticationHandler>("RefreshCookieJwt", options =>
-	{
-		options.ValidateAccessTokenDelegate = (jwtHandler, jwt) => jwtHandler.ValidateRefreshToken(jwt);
-		options.GetCookieNameDelegate = jwtConfiguration => jwtConfiguration.RefreshCookieName;
-	});
-
-builder.Services.AddAuthorizationBuilder()
-	.SetFallbackPolicy(new AuthorizationPolicyBuilder()
-			.RequireAuthenticatedUser()
-			.RequireRole("user")
-			.Build());
+var configuration = builder.Configuration;
 
 builder.Services
-	.AddRouting()
-	.AddScoped<IStoryGenerator, StoryGenerator>()
-	.AddSingleton<IJwtHandler, JwtHandler>()
-	.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>()
-	.AddSingleton<EmailConfirmer>()
-	.AddSingleton<IEmailGenerator, EmailGenerator>()
-	.AddSingleton<IPromptGenerator, PromptGenerator>()
 	.AddDynamicConfigurations("LinguacApi.Configurations")
-	.Configure<JsonSerializerOptions>("OpenAiSerializer", options =>
+	.Configure<JsonSerializerOptions>(SerializerOptions.OpenAiSerializer, options =>
 	{
 		options.PropertyNameCaseInsensitive = true;
 		options.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
 		options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
 	})
-	.AddRazorLight(
-		() => new RazorLightEngineBuilder()
-			.UseFileSystemProject(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates"))
-			.UseMemoryCachingProvider()
-			.Build())
+	.SetupAuthentication(configuration)
+	.SetupDataPersistence(configuration)
+	.SetupEmail()
+	.AddRouting()
+	.AddScoped<IStoryGenerator, StoryGenerator>()
+	.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>()
+	.AddSingleton<IPromptGenerator, PromptGenerator>()
 	.AddCors(options =>
 	{
 		options.AddPolicy("Development", builder =>
@@ -68,13 +39,6 @@ builder.Services
 				.AllowAnyHeader()
 				.AllowAnyMethod();
 		});
-	})
-	.AddDbContext<LinguacDbContext>(options =>
-	{
-		options.UseNpgsql(builder.Configuration.GetConnectionString("Database")
-			?? throw new InvalidOperationException($"'Database' connection string could not be found in the configuration."));
-
-		options.UseSnakeCaseNamingConvention();
 	})
 	.AddControllers(options =>
 	{

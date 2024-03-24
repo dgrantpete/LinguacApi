@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 
-namespace LinguacApi.Services.Authentication.JwtHandler
+namespace LinguacApi.Services.Authentication.TokenHandler
 {
-	public interface IJwtHandler
+	public interface ITokenHandler
 	{
 		TokenResult GenerateAccessToken(Guid userId, IEnumerable<string> roles);
 

@@ -2,7 +2,7 @@
 
 namespace LinguacApi.Configurations
 {
-	public class JwtConfiguration
+	public class AuthTokenConfiguration
 	{
 		[Required]
 		public required string AccessSecret { get; set; }
